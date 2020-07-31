@@ -1,0 +1,235 @@
+
+#Program that makes pong game
+#Sept 24th, 2018- LAB 1
+#Sarah Korb
+#CS1, Professor Cormen
+
+from cs1lib import *
+from random import uniform
+
+
+
+WINDOW_WIDTH = 400
+WINDOW_HEIGHT = 400
+SPEED_PADDLE = 10                   #the paddles will move vertically by 10 pixels
+SPEEDX= 5
+SPEEDY = 5                          #the X and Y coordinates of the ball's center will change by 5 pixels
+
+
+PADDLE_WIDTH = 20
+PADDLE_HEIGHT = 80
+
+
+#State Variables:
+
+aX = 0                              # coordinates of top left corner of left paddle. initial location of left paddle is the top left corner of window
+aY = 0
+
+bX = WINDOW_WIDTH - PADDLE_WIDTH    #coordinates of top left corner of right  paddle. initial location of right paddle is the bottom right corner of window
+bY = WINDOW_HEIGHT - PADDLE_HEIGHT
+
+fill_1 = 1
+fill_2 = 1
+fill_3 = 1
+
+score = 0                           #player starts with 0 points
+
+pressed_a = False                   #these keys have not initially been pressed
+pressed_z = False
+pressed_k = False
+pressed_m = False
+pressed_q = False
+pressed_space = False
+game_over = False
+
+
+ball_x = WINDOW_WIDTH//2                #ball starts at center of screen
+ball_y = WINDOW_HEIGHT//2
+ball_rad = 10                           #ball radius is 10
+
+
+
+def draw_paddles ():                    #drawing the pong paddles
+    global aX, aY, bX, bY
+    disable_stroke()
+    set_fill_color(1, 1, 0)             #set yellow fill for paddles
+    draw_rectangle(aX, aY, PADDLE_WIDTH, PADDLE_HEIGHT)
+    draw_rectangle(bX, bY, PADDLE_WIDTH, PADDLE_HEIGHT)
+
+def draw_score(s):                      #keeps track of score
+    set_stroke_color(1,1,1)             #set color white
+    draw_text("Score: " + str(s), 150,30)
+
+def key_pressed (key) :
+    global pressed_a, pressed_z, pressed_k, pressed_m, pressed_space, game_happening, game_over, pressed_q,score
+
+    #paddles will move when the a,z,k,m keys are pressed
+
+    if key == "a" :                         #if the a key is pressed, left paddle moves up
+        pressed_a = True
+    elif key == "z" :                       #if the z key is pressed, left paddle moves down
+        pressed_z = True
+    elif key == "k" :                       #if the k key is pressed, right paddle moves up
+        pressed_k = True
+    elif key == "m" :                       #if the m key is pressed, right paddle moves down
+        pressed_m = True
+    elif key == "q":                        #if the q key is pressed, the program terminates
+        pressed_q = True
+    elif key == " ":                        #if the space-bar is pressed, the game resets
+        pressed_space = True
+        score = 0                           #score resets to 0
+        move_paddles_and_ball_back()        #ball returns to center/paddles return to their initial positions
+        game_over = False
+
+def key_not_pressed (key):
+    global pressed_a, pressed_z, pressed_k, pressed_m, pressed_q
+
+    #paddles do not continue to move when the a,z,k,m keys are released.
+
+    if key == "a":
+        pressed_a = False
+    elif key == "z":
+        pressed_z = False
+    elif key == "k":
+        pressed_k = False
+    elif key == "m":
+        pressed_m = False
+
+
+def draw_pong ():
+    global aX, aY, bX, bY, pressed_a, pressed_m, pressed_k, pressed_z
+
+    set_clear_color(0.55, 0, 0.80)           #set purple background
+    clear()
+
+    draw_paddles()
+
+    #paddles cannot leave the 400 x 400 frame
+    if aY <= 0:
+        pressed_a = False
+    elif aY >= WINDOW_HEIGHT - PADDLE_HEIGHT:
+        pressed_z = False
+    if bY <= 0:  #?
+        pressed_k = False
+    elif bY >= WINDOW_HEIGHT - PADDLE_HEIGHT:
+        pressed_m = False
+
+
+    #pressing the a,z keys moves the left paddle up and down respectively
+    if pressed_a :
+        aY -= SPEED_PADDLE
+    if pressed_z :
+        aY += SPEED_PADDLE
+
+    #pressing the k, m keys moves the right paddle up and down respectively
+
+    if pressed_k :
+        bY -= SPEED_PADDLE
+    if pressed_m :
+        bY += SPEED_PADDLE
+
+
+def draw_ball(fill_x, fill_y, fill_z):
+    disable_stroke()
+    set_fill_color(fill_x, fill_y, fill_z)
+    draw_circle(ball_x, ball_y, ball_rad)
+    enable_stroke()
+    if not pressed_space:                                      #until the space-bar is pressed, "PRESS SPACE TO START" appears on the screen
+        set_font_size(25)
+        set_stroke_color(1, 1, 1)
+        draw_text("PRESS SPACE TO START", 50, 100)
+
+
+def move_ball():
+    global ball_x, ball_y, SPEEDX, SPEEDY, pressed_space        #when the space-bar is pressed, the ball's X and Y coordinates increase by 5 pixels
+    if pressed_space:                                           #the ball moves to the bottom right corner
+
+
+        ball_x += SPEEDX
+
+        ball_y += SPEEDY
+
+
+def move_paddles_and_ball_back():                               #resets the starting conditions
+    global  ball_x, ball_y, SPEEDX, SPEEDY, aY, aX, bY, bX, fill_1, fill_2, fill_3
+    ball_x = WINDOW_WIDTH//2                                    #the ball returns to the center
+    ball_y = WINDOW_HEIGHT//2
+    SPEEDX = 5                                                  #Speed is set back to 5 pixels in the positive direction for both X and Y
+    SPEEDY = 5                                                  #Ball will always move towards the bottom right corner at the beginning of each game
+    aY = 0
+    aX = 0
+    bY = WINDOW_HEIGHT - PADDLE_HEIGHT
+    bX = WINDOW_WIDTH - PADDLE_WIDTH
+    draw_paddles()                                              #the paddles return to the starting position
+    fill_1 = 1                                                  #the ball turns back to white
+    fill_2 = 1
+    fill_3 = 1
+
+
+
+def change_y (): #changes the y direction of the ball
+    global SPEEDY
+    if (ball_y + ball_rad) >= WINDOW_HEIGHT or (ball_y - ball_rad) <= 0: #if the edge of the ball touches the top/bottom of the window, the Y direction of the balls movement is switched
+        SPEEDY = -SPEEDY
+
+def change_x ():
+    global SPEEDX, game_over, pressed_space
+    if (ball_x + ball_rad) >= WINDOW_WIDTH or (ball_x - ball_rad) <= 0: #if the edge of the ball touches the left/right wall of the window, the game ends and resets
+        pressed_space = not pressed_space                               #the game restarts
+        move_paddles_and_ball_back()                                    #the ball/paddles return to their starting position
+        game_over = True
+
+def draw_game_over():
+    if game_over:
+        enable_stroke()
+        set_stroke_color(1, 0, 0)  #red color
+        draw_text("GAME OVER!", 120, 300)                           #GAME OVER!" appears on the screen until game_over is made untrue by pressing the space-bar
+        set_stroke_color(1,1,0)   #yellow color
+        draw_text("YOU LOSE!", uniform(0,400), uniform(0,400))      #encouraging message flashes on screen in random places
+        draw_text("HAHA!", uniform(0, 400), uniform(0, 400))
+
+
+def left_paddle_intersection():
+    global SPEEDX, fill_1, fill_2, fill_3, score, ball_x
+    if ball_x - ball_rad <= (PADDLE_WIDTH) and  aY <= ball_y <= aY + PADDLE_HEIGHT:
+        SPEEDX = -SPEEDX                                                            #the ball changes direction when it hits the left paddle
+        fill_1 = uniform(0, 1)
+        fill_2 = uniform(0, 1)
+        fill_3 = uniform(0, 1)
+        draw_ball(fill_1, fill_2, fill_3)                                           #everytime the ball hits the paddle, the ball will change to a random color
+        score = score + 1                                                           #everytime the ball hits the paddle the player gets a point and the score increases by 1
+        draw_score(score)
+        ball_x += ball_rad                                                          #add radius length to ball center to prevent slithering
+
+
+def right_paddle_intersection ():
+    global SPEEDX, fill_1, fill_2, fill_3, score, ball_x
+    if ball_x + ball_rad >= (WINDOW_WIDTH-PADDLE_WIDTH) and  bY <= ball_y <= bY + PADDLE_HEIGHT:
+        SPEEDX = -SPEEDX                                                            #the ball changes direction when it hits the right paddle
+        fill_1 = uniform(0,1)
+        fill_2 = uniform(0,1)
+        fill_3 = uniform(0,1)
+        draw_ball(fill_1, fill_2, fill_3)                                           #everytime the ball hits the paddle, the ball will change to a random color
+        score = score + 1                                                           #everytime the ball hits the paddle the player gets a point and the score incre
+        draw_score(score)
+        ball_x -= ball_rad                                                          #add radius length to ball center to prevent slithering
+
+def quit_game():
+    if pressed_q:               #when the q key is pressed, the program terminates and the graphics window closes
+        cs1_quit()
+
+
+def main():                     #main is a parameter-less function calls all the other functions. main is then called by start_graphics
+    draw_pong()
+    draw_ball(fill_1, fill_2, fill_3)
+    draw_score(score)
+    move_ball()
+    right_paddle_intersection()
+    left_paddle_intersection()
+    change_x()
+    change_y()
+    draw_game_over()
+    quit_game()
+
+
+start_graphics(main, title= "PONG", width= WINDOW_WIDTH, height= WINDOW_HEIGHT, framerate= 50, key_press= key_pressed, key_release= key_not_pressed)
