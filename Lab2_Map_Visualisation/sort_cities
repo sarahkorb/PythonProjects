@@ -1,0 +1,46 @@
+#Program to compare city objects
+#Author: Sarah Korb
+#Oct. 16th, 2018
+#Professor Cormen, CS1
+
+from checkpoint import world_city_list                  #import the list of city objects
+from city import City                                   #import methods from City class
+from quicksort import quicksort                         #import quicksort function
+
+def compare_population (city1, city2):                  #function to compare the population of two city objects
+    return city2.population <= city1.population
+
+def compare_alpha(city1, city2):                        #function to compare the names of two city objects alphabetically (turn both names into all lowercase letters by the .lower() method)
+    city2.name.lower()
+    city1.name.lower()
+    return city2.name >= city1.name
+
+
+def compare_latitude(city1, city2):                     #function to compare the latitudes of two city objects
+    return city2.latitude >= city1.latitude
+
+
+City.__le__ = compare_alpha                             #assign less than method to the comparison functions so that the objects can be compared this way
+quicksort(world_city_list)                              #quicksort the list based on this method of comparison
+
+out_file= open("cities_alpha.txt", "w")                 #open a new text file and write in each object of the newly sorted list
+for i in range(len(world_city_list)-1):
+    out_file.write(world_city_list[i].__str__() + "\n")
+
+out_file.close()                                        #close the file
+
+City.__le__ = compare_latitude                          #repeat this process to create new text files with the cities listed in order of latitude and population:
+quicksort(world_city_list)
+
+out_file= open("cities_latitude.txt", "w")
+for i in range(len(world_city_list)-1):
+    out_file.write(world_city_list[i].__str__() + "\n")
+out_file.close()
+
+City.__le__ = compare_population                        #do compare population last- the original world_cities_list will remain sorted this way and can therefore be used directly in the vizualised function
+quicksort(world_city_list)
+
+out_file = open("cities_population.txt", "w")
+for i in range(len(world_city_list)-1):
+    out_file.write(world_city_list[i].__str__() + "\n")
+out_file.close()
